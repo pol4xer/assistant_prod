@@ -63,4 +63,5 @@ jobs:
         run: |
           docker run --detach --name assistant-demo --publish 127.0.0.1:8000:8000 assistant-demo
           trap 'docker logs assistant-demo; docker rm --force assistant-demo' EXIT
-          curl --retry 15 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:8000/health
+          curl --retry 15 --retry-delay 2 --retry-all-errors --retry-max-time 45 --connect-timeout 2 --max-time 5 --silent --show-error --fail http://127.0.0.1:8000/health --output /tmp/assistant-health.json
+          python3 -c 'import json; result = json.load(open("/tmp/assistant-health.json")); assert result["status"] == "ok" and result["demo_mode"] is True; print("Offline demo container is ready")'
