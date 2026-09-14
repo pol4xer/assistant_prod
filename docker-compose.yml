@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_ENV: demo
+      APP_DEMO_MODE: "true"
+      AUTOMATION_POLLING_ENABLED: "false"
+      STATE_DB_PATH: /app/var/assistant.db
+      APP_SECRETS_KEY_PATH: /app/var/assistant.key
+      LOG_DIR: /app/var/log
+    volumes:
+      - assistant-demo-data:/app/var
+volumes:
+  assistant-demo-data:

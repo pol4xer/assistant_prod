@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Python ${{ matrix.python }} / offline checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13']
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: 'true'
+      POETRY_NO_INTERACTION: '1'
+      APP_DEMO_MODE: 'true'
+      AUTOMATION_POLLING_ENABLED: 'false'
+      STATE_DB_PATH: /tmp/assistant-ci/state.db
+      APP_SECRETS_KEY_PATH: /tmp/assistant-ci/secrets.key
+      LOG_DIR: /tmp/assistant-ci/log
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Install Poetry
+        run: uv tool install poetry==2.3.2
+      - name: Select the matrix Python interpreter
+        run: poetry env use "$(uv python find)"
+      - run: make install
+      - run: make check
+      - run: docker compose config --quiet
+
+  container:
+    name: Demo container
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker build --tag assistant-demo .
+      - name: Check the container in offline mode
+        run: |
+          docker run --detach --name assistant-demo --publish 127.0.0.1:8000:8000 assistant-demo
+          trap 'docker logs assistant-demo; docker rm --force assistant-demo' EXIT
+          curl --retry 15 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:8000/health

@@ -1,0 +1,44 @@
+[project]
+name = "scheduling-assistant"
+version = "0.1.0"
+description = "A local scheduling assistant with a FastAPI dashboard, SQLite workflow state, and an offline portfolio demo"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.30,<1.0",
+    "pydantic>=2.11,<3.0",
+    "pydantic-settings>=2.6,<3.0",
+    "python-dotenv>=1.1,<2.0",
+    "google-auth>=2.40,<3.0",
+    "google-auth-oauthlib>=1.2,<2.0",
+    "google-api-python-client>=2.180,<3.0",
+    "cryptography>=46,<51",
+    "openai>=2.53,<3.0",
+    "tzdata>=2025.2",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.1,<10.0"
+ruff = ">=0.16,<1.0"
+httpx = ">=0.28,<1.0"
+pip = ">=26.2,<27.0"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[build-system]
+requires = ["poetry-core>=2.0,<3.0"]
+build-backend = "poetry.core.masonry.api"

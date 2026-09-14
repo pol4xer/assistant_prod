@@ -1,0 +1,10 @@
+# Build context contains source and locked dependency metadata only.
+**
+!pyproject.toml
+!poetry.lock
+!README.md
+!app/
+!app/**/
+!app/**/*.py
+!app/static/*.js
+!app/static/*.css
